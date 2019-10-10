@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <!-- This example HTML file is loaded by the Sample Addon to show simple SR creation. -->
+  <head>
+    <script src="https://s3-us-west-2.amazonaws.com/dc-sampleaddon-ui/gwsdk-1.0.9.js"></script>
+  </head>
+  <body>
+    <h3>Sample App Landing</h3>
+    <button onclick="createSr()">Create a Service Request</button>
+	<div>&nbsp</div>
+	<div id="serviceReqOut">Click to create request</div>
+  </body>
+  
+  <script>
+    function createSr() {
+      var gwClient = GW.createClient("vneo", "vtest");
+      gwClient.getClient().then(function(client) {
+        return Promise.all([client, client.getContext()]);
+      }).then(function(values) {
+        //This is where you would use the Context to prefill and eventually create a service on your side
+        //We will just create a dummy SR
+        var serviceRequest = {
+          "referenceNumber": Math.floor(Math.random() * 10000),
+          "serviceableId": values[1].candidates[0].id,
+          "referenceId1": Math.floor(Math.random() * 10000)
+        }
+        return Promise.all([values[0], values[0].invokeWithoutRefresh("createService", serviceRequest)])
+      }).then(function(values) {
+		if (typeof values !== 'undefined' && values != null) {
+			values[0].completed(values[1].referenceNumber);
+		}
+		else {
+			//report issue about values
+			document.getElementById('serviceReqOut').textContent = "claim values are not defined. Service request creation failed";
+		}
+      });
+    }
+  </script>
+</html>
